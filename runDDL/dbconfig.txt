@@ -1,0 +1,8 @@
+#node1.ip=127.0.0.1
+#node1.port=5506
+
+#node2.ip=127.0.0.2
+#node2.port=5506
+
+test.ip=127.0.0.1
+test.port=5506
