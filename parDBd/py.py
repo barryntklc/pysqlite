@@ -6,13 +6,9 @@ SETTINGCFG = 'server_settings.txt'
 SETTINGSCFG_DEFAULT = """PORT=5506
 HOST=127.0.0.1
 """
-
 SETTINGS = []
 
-#PORT = 5506;
-#HOST = "127.0.0.1";
-
-VERSION = '1.0.1'
+#VERSION = '1.0.1'
 
 #create the sqlite instance
 SQLITE3_CONN = sqlite3.connect('parDBd.db');
@@ -20,13 +16,8 @@ SQLITE3_CONN = sqlite3.connect('parDBd.db');
 #based on example from 
 #https://docs.python.org/2/library/sqlite3.html
 def Main():
-    print("Starting parDBd Server " + VERSION);
+    print("Starting parDBd Server.");
     global SQLITE3_CONN
-    
-    #cursor = SQLITE3_CONN.cursor()
-    #cursor.execute('''CREATE TABLE stocks
-    #         (date text, trans text, symbol text, qty real, price real)''')
-    #todo read from settings
     
     try:
         READ_Settings(SETTINGCFG)

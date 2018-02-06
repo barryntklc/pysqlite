@@ -19,17 +19,22 @@ def Main():
     
     print("Starting RunDDL Client") 
     valid = True 
+    #Read the ClusterCFG
     try:
         READ_Clustercfg(CLUSTERCFG) 
     except OSError:
         print("Could not find a node configuration file!") 
         valid = False 
+        
+    #Read the DDLFile
     try:
         global Queries 
         Queries = READ_Ddlfile(DDLFILE)
     except OSError:
         print("Could not find a query configuration file!") 
-        valid = False 
+        valid = False
+        
+     
     if valid is True:
         NODES_OpenConnections()
     else:
@@ -84,21 +89,30 @@ def NODES_PrintConnections():
 def NODES_OpenConnections():
     for Node in NODES:
         print('Connecting to ' + Node.name + '...')
-        CONNECT(Node.ipaddr, Node.portnum)
+        RUNDDL(Node.ipaddr, Node.portnum)
+        
+def NODES_Get(nodename):
+    for Node in NODES:
+        if (Node.name == nodename):
+            return Node
+    return False
         
 def NODES_SetupCatalog():
     print("Checking catalog database...")
     #TODO set up catalog database
     
     create_table = """CREATE TABLE IF NOT EXISTS dtables (
-    tname char(32),
     nodeid int,
+    nodename char(32),
     nodeurl char(128),
+    tname char(32),
     partmtd int,
     partcol char(32),
     partparam1 char(32),
     partparam2 char(32)
     );"""
+    
+    
     
     
 
@@ -117,7 +131,19 @@ class Node(object):
 
 #based on example from 
 #https://shakeelosmani.wordpress.com/2015/04/13/python-3-socket-programming-example/
-def CONNECT(HOST, PORT):
+def RUNDDL(HOST, PORT):
+    global Queries
+    
+    nodesocket = socket.socket() #defines the socket object
+    nodesocket.connect((HOST,int(PORT))) #attempts to connect the socket object
+
+    nodesocket.send(Queries.encode()) #socket object attempts to send the Queries string
+    data = nodesocket.recv(1024).decode() #data picks up the response
+    print (data)
+             
+    nodesocket.close() #socket closes
+    
+def RUNQUERY(HOST, PORT, Query):
     global Queries
     
     nodesocket = socket.socket() #defines the socket object
