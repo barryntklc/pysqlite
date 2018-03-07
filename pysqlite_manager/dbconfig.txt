@@ -1,0 +1,19 @@
+#node1.ip=127.0.0.1
+#node1.port=5506
+
+#node2.ip=127.0.0.2
+#node2.port=5506
+
+cat.ip=127.0.0.1
+cat.port=5501
+
+n1.ip=127.0.0.1
+n1.port=5502
+
+#n2.ip=127.0.0.1
+#n2.port=5503
+
+#n3.ip=127.0.0.1
+#n3.port=5504
+
+partmtd = nonpartition

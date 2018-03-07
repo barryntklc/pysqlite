@@ -1,43 +1,46 @@
-import socket;
-import sqlite3;
+'''
+Created on Feb 13, 2018
+
+@author: Chunmeista
+'''
+import sqlite3
+import socket
 import threading
+from multiprocessing import Process, Queue
+#from parDBd import Methods
+import pickle
 
-SETTINGCFG = 'server_settings.txt'
-SETTINGSCFG_DEFAULT = """PORT=5506
-HOST=127.0.0.1
-"""
-SETTINGS = []
+from Settings import Settings
+from KVPair import KVPair
 
-#VERSION = '1.0.1'
 
-#create the sqlite instance
-SQLITE3_CONN = sqlite3.connect('parDBd.db');
+SETTINGCFG_PATH = './server_settings.txt'
+DATABASE_PATH = './parDBd.db'
+global SQLITE3_CONN
+global SETTINGS
 
-#based on example from 
-#https://docs.python.org/2/library/sqlite3.html
+
 def Main():
-    print("Starting parDBd Server.");
+    print("Starting parDBd Server.")
     global SQLITE3_CONN
+    SQLITE3_CONN = sqlite3.connect(DATABASE_PATH);
+
+    global SETTINGS
+    SETTINGS = Settings(SETTINGCFG_PATH)
     
     try:
-        READ_Settings(SETTINGCFG)
-    except OSError:
-        print("OSError: Could not find a configuration file! Creating one...")
-        INIT_Settings(SETTINGCFG)
-    except IOError:
-        print("IOError: Could not find a configuration file! Creating one...")
-        INIT_Settings(SETTINGCFG)
-    
-    try:
-        #thread1 = threading.Thread(target = SOCKET_LISTEN())
-        #thread2 = threading.Thread(target = CONSOLE())
-        #thread2.start()
-        #thread1.start()
-        
-        
-        #thread2.join()
-        #thread1.join()
-        SOCKET_LISTEN()
+        jobs = []
+
+        listen_thread = Process(target=SOCKET_LISTEN())
+        listen_thread.daemon = True
+        #listen_thread.start()
+        #terminal_thread = Process(target=CONSOLE())
+        #terminal_thread.daemon = True
+        #terminal_thread.start()
+        #threading._start_new_thread(SOCKET_LISTEN())
+        #CONSOLE() #TODO multithreaded console
+
+
     except KeyboardInterrupt:
         print("Keyboard interruption detected, stopping server...")
     
@@ -46,91 +49,74 @@ def Main():
     
     print("Server stopped.")
 
+def CHECK_CONNECTION():
+    print()
+    #if connection refused
+    #else
+
+# based on example from
+# https://shakeelosmani.wordpress.com/2015/04/13/python-3-socket-programming-example/
+def SOCKET_LISTEN():
+    print("Accepting connections. Listening for queries...")
+    ServerSocket = socket.socket()
+    ServerSocket.bind((SETTINGS.SETTINGS_Get('HOST'), int(SETTINGS.SETTINGS_Get('PORT'))))
+    while True:  # initial listen loop
+
+        ServerSocket.listen(1)
+        ConnectionInstance, addr = ServerSocket.accept()
+
+
+        #while True:  # todo later instantiate as different threads
+        global SQLITE3_CONN
+
+        received_data = pickle.loads(ConnectionInstance.recv(1024))
+
+        clientcode = str(received_data[0])
+        clientdata = str(received_data[1])
+        if not clientdata or not clientcode:
+            break
+
+        print("Connection from client: " + str(addr[0]) + ":" + str(addr[1]) + ' sent the following:')
+        print('CODE: ' + clientcode)
+        print('DATA: ' + clientdata)
+        print()
+
+        cursor = SQLITE3_CONN.cursor()
+        servdata = ''
+        servcode = ''
+        try:
+            if clientcode == '001':
+                servcode = '200'
+                servdata = 'connection_successful'
+            else:
+                clientdata = str(clientdata)
+                clientcode = str(clientcode)
+                #if data sent is connect check
+                #else if query is equal to
+                cursor.execute(str(clientdata))
+                SQLITE3_CONN.commit()
+
+                servcode = '202'
+                servdata = 'queries_successful'
+        except sqlite3.OperationalError as e:
+            servcode = '101'
+            servdata = 'operational_error' + str(e)
+        except sqlite3.IntegrityError as e:
+            servcode = '102'
+            servdata = 'integrity_error' + str(e)
+        except TypeError as e:
+            servcode = '103'
+            servdata = 'type_error' + str(e)
+        #print(servcode)
+        #print(servdata)
+
+        print()
+
+        ConnectionInstance.send(pickle.dumps((servcode, servdata)))
+
 def CONSOLE():
     while True:
         command = input(': ')
+        print(command)
 
-#based on example from 
-#https://shakeelosmani.wordpress.com/2015/04/13/python-3-socket-programming-example/
-def SOCKET_LISTEN():
-    print("Accepting connections. Listening for queries...");
-    ServerSocket = socket.socket();
-    ServerSocket.bind((SETTINGS_Get('HOST'), int(SETTINGS_Get('PORT'))));
-    while True: #initial listen loop
-        ServerSocket.listen(1);
-    
-        ConnectionInstance, addr = ServerSocket.accept();
-        print ("Connection from: " + str(addr))
-        while True: #todo later instantiate as different threads
-            global SQLITE3_CONN
-            data = ConnectionInstance.recv(1024).decode()
-            if not data:
-                break
-            print ("The connected user sent the following queries:\n" + str(data))
-            
-            cursor = SQLITE3_CONN.cursor()
-            msg = ''
-            try:
-                cursor.execute(str(data))
-                SQLITE3_CONN.commit()
-                data = str(data)
-                msg = ('[SERVER]: Processing the following queries:\n' + data).encode()
-            except sqlite3.OperationalError as e:
-                msg = ('[SERVER]: Error processing queries: ' + str(e)).encode()
-            print(msg)
-            ConnectionInstance.send(msg)
-    
-def READ_Settings(file):
-    print("Reading server configuration file...")
-    settings = open(file, 'r')
-    for line in settings:
-        if line[0] != '#' and '=' in line:
-            key, val = line.split('=')
-            val = val.strip('\n\r')
-            if SETTINGS_Contains(key) is True:
-                for KVPAIR in SETTINGS:
-                    if KVPAIR.key == key:
-                        KVPAIR.val = val
-            else:
-                SETTING = KVPair()
-                SETTING.key = key
-                SETTING.val = val
-                SETTINGS.append(SETTING)
-    settings.close()
-    print('Loaded the following settings:')
-    SETTINGS_PrintSettings()
-    
-def INIT_Settings(file):
-    print("Creating default server configuration file...")
-    settings = open(file, 'w+')
-    settings.write(SETTINGSCFG_DEFAULT)
-    settings.close()
-    
-class KVPair(object):
-    key = ""
-    val = ""
-    
-    def __init__(self):
-        self.key = ""
-        self.val = ""
-    
-    def ToString(self):
-        return (self.key + '=' + self.val)
-    
-def SETTINGS_Contains(key):
-    for KVPair in SETTINGS:
-        if (KVPair.key == key):
-            return True
-    return False
-
-def SETTINGS_PrintSettings():
-    for KVPair in SETTINGS:
-        print(KVPair.ToString())
-        
-def SETTINGS_Get(key):
-    for KVPair in SETTINGS:
-        if (KVPair.key == key):
-            return KVPair.val
-    return ''
-    
 Main()
