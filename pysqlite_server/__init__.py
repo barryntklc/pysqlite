@@ -6,7 +6,7 @@ Created on Feb 20, 2018
 
 #from FileIO.py import FileIO
 
-from parDBd import *
+from pysqlite_server import *
 #from Settings import Settings
 #from KVPair import KVPair
 

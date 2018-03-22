@@ -7,7 +7,6 @@ import sqlite3
 import socket
 import threading
 from multiprocessing import Process, Queue
-#from parDBd import Methods
 import pickle
 
 from Settings import Settings
@@ -99,20 +98,20 @@ def SOCKET_LISTEN():
                 servcode = '202'
                 servdata = 'queries_successful'
         except sqlite3.OperationalError as e:
-            servcode = '101'
-            servdata = 'operational_error' + str(e)
+            servcode = '501'
+            servdata = 'operational_error: ' + str(e)
         except sqlite3.IntegrityError as e:
-            servcode = '102'
-            servdata = 'integrity_error' + str(e)
+            servcode = '502'
+            servdata = 'integrity_error: ' + str(e)
         except TypeError as e:
-            servcode = '103'
-            servdata = 'type_error' + str(e)
+            servcode = '503'
+            servdata = 'type_error: ' + str(e)
         #print(servcode)
         #print(servdata)
 
         print()
 
-        ConnectionInstance.send(pickle.dumps((servcode, servdata)))
+        ConnectionInstance.send(pickle.dumps((servcode, servdata), protocol=2))
 
 def CONSOLE():
     while True:

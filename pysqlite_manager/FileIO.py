@@ -30,10 +30,10 @@ class FileIO:
         print("[FileIO] Reading queries from file...")
         sqlFile = open(SQLFILE, 'r')
         for line in sqlFile:
-            if line[0] != '#' and line.strip(' \t\n\r') != '':
+            if line[0] != '#' and line[:2:] != '--' and line.strip(' \t\n\r') != '':
                 Buffer += line
         sqlFile.close()
-
+        print()
         return Buffer
 
     # https://docs.python.org/3/library/csv.html

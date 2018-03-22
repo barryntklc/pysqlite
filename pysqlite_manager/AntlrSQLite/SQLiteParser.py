@@ -1364,7 +1364,7 @@ class SQLiteParser ( Parser ):
             self.state = 173
             localctx._UNEXPECTED_CHAR = self.match(SQLiteParser.UNEXPECTED_CHAR)
              
-                 throw new RuntimeException("UNEXPECTED_CHAR=" + (None if localctx._UNEXPECTED_CHAR is None else localctx._UNEXPECTED_CHAR.text)); 
+            raise RuntimeError("UNEXPECTED_CHAR=" + (None if localctx._UNEXPECTED_CHAR is None else localctx._UNEXPECTED_CHAR.text))
                
         except RecognitionException as re:
             localctx.exception = re

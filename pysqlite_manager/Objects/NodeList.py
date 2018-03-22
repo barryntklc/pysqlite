@@ -9,7 +9,7 @@ class NodeList(object):
 
     def __init__(self):
         self.Nodes = []
-        print("Nodelist created.")
+        # print("Nodelist created.")
 
     # Add
     # Adds a Node to the NodeList if does not yet exist. Otherwise, modifies the specified attribute of each

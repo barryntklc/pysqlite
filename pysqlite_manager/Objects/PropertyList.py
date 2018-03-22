@@ -10,6 +10,12 @@ class PropertyList(object):
     def __init__(self):
         self.Properties = []
 
+    # Size
+    # Returns the size of the NodeList.
+    #
+    def Size(self):
+        return len(self.Properties)
+
     # Add
     # Adds a Property to the PropertyList if does not yet exist. Otherwise, modifies the val of each
     # Property in the PropertyList if it does.
@@ -47,4 +53,4 @@ class PropertyList(object):
         buffer = ""
         for self.Property in self.Properties:
             buffer += self.Property.ToString() + '\n'
-        return buffer
+        return buffer, self.Size()

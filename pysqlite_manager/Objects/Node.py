@@ -15,18 +15,52 @@ class Node(object):
         code = '001'
 
         nodesocket = socket.socket()  # defines the socket object
-        nodesocket.connect((self.ipaddr, int(self.portnum)))  # attempts to connect the socket object
 
         try:
+            nodesocket.connect((self.ipaddr, int(self.portnum)))  # attempts to connect the socket object
             nodesocket.send(pickle.dumps((code, "test_connection")))
             reply = pickle.loads(nodesocket.recv(1024))
-            #print(reply[0])
-            #print(reply[1])
             if reply[0] == '200':
                 return True
+            else:
+                return False
         except Exception as e:
             return False
-        return False
+        except WindowsError as e:
+            return False
+
+    def RunQuery(self, sql):
+        code = '100'
+
+        nodesocket = socket.socket()  # defines the socket object
+        nodesocket.connect((self.ipaddr, int(self.portnum)))  # attempts to connect the socket object
+
+        result = False
+        servcode = ""
+        servdata = ""
+
+        try:
+            nodesocket.send(pickle.dumps((code, sql)))
+            reply = pickle.loads(nodesocket.recv(1024))
+            # print("RunQuery servcode: " + reply[0])
+            # print("RunQuery servdata: " + reply[1])
+            # TODO either handle error here or return both servcode and servdata
+            if reply[0] == '202':
+                result = True
+            else:
+                result = False
+            servcode = reply[0]
+            servdata = reply[1]
+        except Exception as e:
+            result = False
+
+        return result, servcode, servdata
+
+    #def AddPart:
+
+    #def RemovePart:
+
+    #def ReAlloc:
 
     def GetName(self):
         return self.name
